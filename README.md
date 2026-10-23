@@ -4,9 +4,9 @@
 
 后续 Stage B/C 的监督验证损失各自在本阶段下降；按相同 FP32 开发集协议，严格成功分别为 Stage A **24/50**、Stage B **25/50**、Stage C **25/50**。Stage C 合并模型另在当前 Final-200 Clean 上得到 **123/200**，但该单卡 12K 推理协议与原仓库历史结果不同，不能直接比较。Stage B 的净增仅 1 题，Stage C 没有净增，不能写成持续提升。
 
-本目录是从本地工作区整理出的**独立发布准备副本**：只包含可复用的训练核心、测试、示例配置和部分 ShopSimulator 脚本，不包含完整 SFT 流水线、模型权重、checkpoint、上游任务数据、评测原始产物、虚拟环境或上游仓库。上述 SFT 数字来自原始工作区的冻结评测，不能仅靠此副本重跑。`cpu-smoke` 只验证训练数学和保存/重载，不代表购物成功率。
+本仓库从本地工作区整理出可复用的训练核心、测试、示例配置和部分 ShopSimulator 脚本，不包含完整 SFT 流水线、模型权重、checkpoint、上游任务数据、评测原始产物、虚拟环境或上游仓库。上述 SFT 数字来自原始工作区的冻结评测，不能仅靠本仓库重跑。`cpu-smoke` 只验证训练数学和保存/重载，不代表购物成功率。
 
-当前在线训练已有采样、概率审计、更新和恢复的技术验收；原始工作区的连续训练状态在本次核对时记录 **34 次优化器更新**。尚未完成 Stage C 起点与所选 checkpoint 的同协议 50 题配对评测，因而**没有证据宣称在线训练提升购物成功率**。公开此代码前，应另附可核查的结果报告，并区分开发集、最终集与训练技术验收。
+当前在线训练已有采样、概率审计、更新和恢复的技术验收；原始工作区的连续训练状态在本次核对时记录 **34 次优化器更新**。尚未完成 Stage C 起点与所选 checkpoint 的同协议 50 题配对评测，因而**没有证据宣称在线训练提升购物成功率**。若传播训练结果，应另附可核查的结果报告，并区分开发集、最终集与训练技术验收。
 
 核心包包含合成商品选择任务的 Qwen LoRA 训练、概率审计、断点恢复和独立重载；`scripts/` 提供 ShopSimulator 的冻结多轮评测、任务划分校验和 Stage C 的采样/更新入口。ShopSimulator 路径需要另行准备固定版本的上游环境、模型及已完成的 SFT 产物。
 
@@ -16,7 +16,7 @@
 src/shopmini/          训练、奖励、rollout 和概率审计实现
 tests/                 不依赖 GPU 的单元测试；部分上游测试有条件执行
 configs/qwen_smoke.json 真实模型的示例配置
-data/                  合成商品任务及冻结的 ShopSimulator 任务划分
+data/                  合成商品任务及 ShopSimulator 任务划分生成说明
 scripts/               环境、冻结评测及 Stage C 采样/更新入口
 docs/PUBLICATION_SCOPE.md 选入、排除范围与验证结果
 ```
@@ -68,8 +68,8 @@ ShopSimulator 服务使用独立的 Python 3.10 环境。`setup_shopsim.py` 需�
 .venv\Scripts\python.exe scripts/run_shopsim_baseline.py --model-path models/qwen3.5-2b --split validation --max-tasks 1 --output-dir outputs/frozen-baseline-001
 ```
 
-Stage C GRPO 入口依次为 `prepare_stage_c_grpo.py`（校验并冻结已完成的 SFT 合并模型）、`stage_c_grpo_entry.py`（G=4 当前策略采样）和 `update_stage_c_grpo.py`（只消费有有效奖励差异且通过概率审计的组）。这些脚本要求显式传入 `--model`/`--sft-run`、`--start-manifest`、`--source` 与 `--output-dir` 等输入；本副本没有附带前期 SFT 权重和历史运行目录。先查看各脚本 `--help`，再用自己的产物路径启动。
+Stage C GRPO 入口依次为 `prepare_stage_c_grpo.py`（校验并冻结已完成的 SFT 合并模型）、`stage_c_grpo_entry.py`（G=4 当前策略采样）和 `update_stage_c_grpo.py`（只消费有有效奖励差异且通过概率审计的组）。这些脚本要求显式传入 `--model`/`--sft-run`、`--start-manifest`、`--source` 与 `--output-dir` 等输入；本仓库没有附带前期 SFT 权重和历史运行目录。先查看各脚本 `--help`，再用自己的产物路径启动。
 
-ShopSimulator 的任务划分见 `data/shopsim_splits/manifest.json`。其中 994 个 GRPO 训练任务与 SFT 任务、50 个开发任务及 Final-200 分离。Final-200 只用于最终评测。
+运行划分生成脚本后，ShopSimulator 的任务划分见本地 `data/shopsim_splits/manifest.json`。其中 994 个 GRPO 训练任务与 SFT 任务、50 个开发任务及 Final-200 分离。Final-200 只用于最终评测。
 
-项目参考上游仓库的任务环境和数据；本仓库的实验代码与上游 checkout 分开。公开发布前请检查模型与数据的分发权限，并添加项目自己的许可证声明。
+项目参考上游仓库的任务环境和数据；本仓库的实验代码与上游 checkout 分开。若要开放他人复用，请先明确自有代码的许可证，并检查模型与数据的分发权限。
