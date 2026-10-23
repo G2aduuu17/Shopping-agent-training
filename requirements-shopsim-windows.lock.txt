@@ -1,0 +1,18 @@
+# ShopSimulator CPU service only; Python 3.10.21, Windows.
+beautifulsoup4==4.11.1
+click==8.5.0
+cloudpickle==3.1.2
+colorama==0.4.6
+commonmark==0.9.2
+flask==2.1.2
+gym==0.24.0
+gym-notices==0.1.0
+itsdangerous==2.2.0
+jinja2==3.1.6
+markupsafe==3.0.3
+numpy==1.26.4
+pygments==2.21.0
+rich==12.4.4
+soupsieve==2.9.2
+tqdm==4.64.0
+werkzeug==2.1.2
